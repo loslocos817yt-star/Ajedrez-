@@ -1,0 +1,38 @@
+[
+  {
+    "nombre": "Peon",
+    "captura": "Diagonal frontal una casilla",
+    "blanca": "♙",
+    "negra": "♟"
+  },
+  {
+    "nombre": "Torre",
+    "captura": "Horizontal y vertical",
+    "blanca": "♖",
+    "negra": "♜"
+  },
+  {
+    "nombre": "Caballo",
+    "captura": "Final de movimiento en L",
+    "blanca": "♘",
+    "negra": "♞"
+  },
+  {
+    "nombre": "Alfil",
+    "captura": "Diagonal cualquier distancia",
+    "blanca": "♗",
+    "negra": "♝"
+  },
+  {
+    "nombre": "Reina",
+    "captura": "Cualquier direccion recta o diagonal",
+    "blanca": "♕",
+    "negra": "♛"
+  },
+  {
+    "nombre": "Rey",
+    "captura": "Cualquier direccion una casilla",
+    "blanca": "♔",
+    "negra": "♚"
+  }
+]
