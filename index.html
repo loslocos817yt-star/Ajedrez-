@@ -2,44 +2,62 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Tablero de Piezas</title>
+    <title>Ajedrez Funcional</title>
     <style>
-        table { width: 100%; border-collapse: collapse; font-family: sans-serif; }
-        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-        .ficha { font-size: 2rem; }
+        #tablero { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); border: 2px solid #333; width: 480px; }
+        .casilla { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer; }
+        .blanca { background-color: #eee; }
+        .negra { background-color: #999; }
+        .seleccionada { background-color: #ffeb3b !important; }
     </style>
 </head>
 <body>
 
-    <table id="tabla-ajedrez">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Captura</th>
-                <th>Blanca</th>
-                <th>Negra</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
+    <div id="tablero"></div>
 
     <script>
+        let piezaSeleccionada = null;
+
+        // 1. Cargar el JSON y armar el tablero
         fetch('json/piezas.json')
             .then(res => res.json())
-            .then(data => {
-                const tbody = document.querySelector('#tabla-ajedrez tbody');
-                data.forEach(p => {
-                    const row = `<tr>
-                        <td>${p.nombre}</td>
-                        <td>${p.captura}</td>
-                        <td class="ficha">${p.blanca}</td>
-                        <td class="ficha">${p.negra}</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-            })
-            .catch(err => console.error('Error cargando el JSON:', err));
+            .then(piezas => {
+                const tablero = document.getElementById('tablero');
+                
+                // Crear 64 casillas
+                for (let i = 0; i < 64; i++) {
+                    const div = document.createElement('div');
+                    const fila = Math.floor(i / 8);
+                    const col = i % 8;
+                    div.classList.add('casilla', (fila + col) % 2 === 0 ? 'blanca' : 'negra');
+                    
+                    // Lógica simple de click para mover
+                    div.onclick = () => moverPieza(div);
+                    tablero.appendChild(div);
+                }
+
+                // Colocar algunas piezas de ejemplo del JSON para probar
+                const casillas = document.querySelectorAll('.casilla');
+                casillas[0].innerHTML = piezas[1].negra; // Torre negra
+                casillas[4].innerHTML = piezas[5].negra; // Rey negro
+                casillas[60].innerHTML = piezas[5].blanca; // Rey blanco
+            });
+
+        function moverPieza(casilla) {
+            if (piezaSeleccionada) {
+                // Si ya tengo una pieza, la muevo a la nueva casilla
+                if (casilla !== piezaSeleccionada) {
+                    casilla.innerHTML = piezaSeleccionada.innerHTML;
+                    piezaSeleccionada.innerHTML = '';
+                }
+                piezaSeleccionada.classList.remove('seleccionada');
+                piezaSeleccionada = null;
+            } else if (casilla.innerHTML !== '') {
+                // Si la casilla tiene algo, la selecciono
+                piezaSeleccionada = casilla;
+                piezaSeleccionada.classList.add('seleccionada');
+            }
+        }
     </script>
 </body>
 </html>
