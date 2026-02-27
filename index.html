@@ -5,15 +5,17 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ESTELAR - PattitexTEC</title>
 <style>
-/* fuente opcional */
-@font-face{font-family:MiFuenteCustom;src:url('/asset/fuente.ttf') format('truetype');}
+/* fuente opcional corregida para GitHub Pages */
+@font-face{font-family:MiFuenteCustom;src:url('./asset/fuente.ttf') format('truetype');}
 
-/* reset */
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+/* reset y mejoras móviles */
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
 body{
   background:#000;color:#fff;font-family:MiFuenteCustom,Arial,Helvetica,sans-serif;
-  -webkit-tap-highlight-color:transparent;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none; /* Evita que el texto se seleccione al jugar en móvil */
+  overflow:hidden;
 }
 
 /* transición global */
@@ -28,7 +30,7 @@ body{
 #game-screen{z-index:5}
 
 /* titulo */
-h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18px}
+h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18px;text-align:center;}
 
 /* botones principales */
 .btn-main{
@@ -41,7 +43,7 @@ h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18p
 
 /* UI en juego */
 #ui{position:absolute;top:18px;width:100%;display:flex;justify-content:space-between;padding:0 22px;z-index:60;pointer-events:none;align-items:center}
-#score{font-size:26px;color:#00ffcc;pointer-events:none}
+#score{font-size:26px;color:#00ffcc;pointer-events:none;font-weight:bold;}
 .ui-controls{display:flex;gap:10px;align-items:center;pointer-events:auto}
 .small-btn{padding:8px 12px;border-radius:12px;border:2px solid #00ffcc;background:rgba(0,255,204,0.06);color:#00ffcc;cursor:pointer;font-size:14px}
 
@@ -49,15 +51,16 @@ h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18p
 #overlay-menu{
   position:fixed;inset:0;background:rgba(0,0,0,0.92);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;
 }
-#overlay-menu h2{font-size:2.6rem;margin-bottom:18px}
+#overlay-menu h2{font-size:2.6rem;margin-bottom:18px;text-align:center;}
 #overlay-menu .btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 
 /* canvas juego */
-#game-canvas{display:block;width:100%;height:100%;background:linear-gradient(180deg,#001 0%,#000 100%);}
+#game-canvas{display:block;width:100%;height:100%;background:linear-gradient(180deg,#000011 0%,#000000 100%);}
 
 /* controles táctiles */
 .controls{position:absolute;bottom:26px;width:100%;display:flex;justify-content:space-around;z-index:60;pointer-events:none}
-.ctrl-btn{width:86px;height:86px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #00ffcc;background:rgba(0,255,204,0.06);color:#00ffcc;font-size:34px;pointer-events:auto}
+.ctrl-btn{width:86px;height:86px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #00ffcc;background:rgba(0,255,204,0.06);color:#00ffcc;font-size:34px;pointer-events:auto;user-select:none;}
+.ctrl-btn:active{background:rgba(0,255,204,0.3);}
 
 /* estrellas fondo del menú */
 #menu-stars{position:absolute;inset:0;z-index:-1;}
@@ -65,7 +68,7 @@ h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18p
 /* modal GENERAL (menú principal) */
 #general-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);z-index:1000}
 .general-card{width:min(760px,94%);max-width:760px;background:linear-gradient(180deg,#080808,#0f0f0f);border-radius:14px;padding:18px;border:2px solid rgba(0,255,204,0.1);box-shadow:0 10px 40px rgba(0,0,0,0.6);color:#eafff5}
-.general-header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.general-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
 .general-header h3{color:#00ffd0;margin:0}
 .meta-row{display:flex;gap:12px;align-items:center;margin-top:12px}
 .small-info{font-size:.92rem;color:#cfeee6}
@@ -77,6 +80,7 @@ h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18p
   .btn-main{padding:12px 42px;font-size:1rem}
   .ctrl-btn{width:68px;height:68px;font-size:26px}
   .general-card{padding:14px}
+  .general-header{flex-direction:column;align-items:flex-start;}
 }
 </style>
 </head>
@@ -84,23 +88,19 @@ h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18p
 
 <div id="transition-layer"></div>
 
-<!-- MENÚ -->
 <div id="menu-screen" class="screen" aria-label="menu principal">
   <canvas id="menu-stars"></canvas>
   <h1>ESTELAR</h1>
 
   <button class="btn-main" onclick="startToGame()">JUGAR</button>
 
-  <!-- BOTÓN GENERAL en menú principal -->
   <button class="btn-main" style="margin-top:16px;font-size:1rem;padding:12px 40px" onclick="showGeneral()">
     GENERAL
   </button>
 
-  <!-- info peque (version) -->
   <div style="position:absolute;bottom:18px;font-size:.82rem;color:#9fded0;opacity:.9">v0.1 α — PattitexTEC</div>
 </div>
 
-<!-- PANTALLA JUEGO -->
 <div id="game-screen" class="screen" aria-label="pantalla de juego" style="display:none">
   <div id="ui">
     <div id="score">0</div>
@@ -126,7 +126,6 @@ h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18p
   </div>
 </div>
 
-<!-- MODAL GENERAL (abrible desde menú principal) -->
 <div id="general-modal" role="dialog" aria-modal="true" aria-labelledby="general-title">
   <div class="general-card" role="document">
     <div class="general-header">
@@ -141,9 +140,8 @@ h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18p
         <div style="margin-top:10px" class="small-info"><strong>Versión:</strong> 0.1 α — Proyecto en desarrollo</div>
       </div>
 
-      <div style="min-width:140px;text-align:right">
+      <div style="min-width:140px;text-align:right;margin-top:10px;">
         <div class="tiktok-badge" title="TikTok">
-          <!-- SVG pequeño del estilo de logo (inline simple) -->
           <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
             <path fill="#00ffdd" d="M33.5 10.7v12.8c0 0-1.3-.1-3.5-.1-2.9 0-5.9.6-8.3 1.9-2.3 1.2-4.1 3.1-4.9 5.5-1 3.1-.1 6.6 2.2 8.8 2.3 2.3 5.6 3.1 8.7 2.1 3-.9 5.4-3.4 6.2-6.4.2-.7.3-1.4.3-2.1V22.2h4.3v18.7c0 4.2-3.4 7.6-7.6 7.6-3.3 0-6.1-2-7.2-4.8-1.3-3.6.1-7.6 3.3-9.6 2.3-1.5 5.1-1.8 7.6-1.1V10.7z"/>
           </svg>
@@ -173,10 +171,10 @@ h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18p
 
 <script>
 /* ---------------------------
-   Audio
+   Audio (Rutas relativas corregidas)
    --------------------------- */
-const menuMusic = new Audio('/asset/music/menu.mp3');
-const gameMusic = new Audio('/asset/music/game.mp3');
+const menuMusic = new Audio('./asset/music/menu.mp3');
+const gameMusic = new Audio('./asset/music/game.mp3');
 menuMusic.loop = true; gameMusic.loop = true;
 
 /* autoplay attempt */
@@ -185,7 +183,6 @@ window.addEventListener('load', ()=>{ menuMusic.play().catch(()=>{}); });
 /* fade entre audios */
 function fadeAudio(outAudio, inAudio){
   try{
-    // fade out
     let ov = outAudio.volume ?? 1;
     const fo = setInterval(()=>{
       ov -= 0.06;
@@ -193,7 +190,6 @@ function fadeAudio(outAudio, inAudio){
       else outAudio.volume = Math.max(0,ov);
     }, 60);
 
-    // fade in
     inAudio.volume = 0;
     inAudio.play().catch(()=>{});
     let iv = 0;
@@ -253,6 +249,7 @@ let frames = 0;
 let isPaused = false;
 let isDead = false;
 let moveL = false, moveR = false;
+let animationId; // Para poder detener el loop correctamente
 
 function resetGame(){
   resizeCanvas();
@@ -271,10 +268,11 @@ function resetGame(){
 /* controls touch */
 function setupCtrl(id, side){
   const el = document.getElementById(id);
-  el.addEventListener('touchstart', e=>{ e.preventDefault(); if(side==='L') moveL=true; else moveR=true; });
-  el.addEventListener('touchend', e=>{ e.preventDefault(); if(side==='L') moveL=false; else moveR=false; });
+  el.addEventListener('touchstart', e=>{ e.preventDefault(); if(side==='L') moveL=true; else moveR=true; }, {passive: false});
+  el.addEventListener('touchend', e=>{ e.preventDefault(); if(side==='L') moveL=false; else moveR=false; }, {passive: false});
   el.addEventListener('mousedown', e=>{ e.preventDefault(); if(side==='L') moveL=true; else moveR=true; });
   el.addEventListener('mouseup', e=>{ e.preventDefault(); if(side==='L') moveL=false; else moveR=false; });
+  el.addEventListener('mouseleave', e=>{ e.preventDefault(); if(side==='L') moveL=false; else moveR=false; });
 }
 setupCtrl('l-btn','L'); setupCtrl('r-btn','R');
 
@@ -292,25 +290,27 @@ window.addEventListener('keyup', (e)=>{
 /* main game loop */
 function gameLoop(){
   if(isPaused || isDead || document.getElementById('game-screen').style.display === 'none') return;
+  
   // clear
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
   // move ship
   if(moveL && shipX > 0) shipX -= shipSpeed;
   if(moveR && shipX < canvas.width - 50) shipX += shipSpeed;
 
-  // draw ship
+  // draw ship (Mejorado con closePath)
   ctx.fillStyle = '#00ffcc';
   ctx.beginPath();
-  ctx.moveTo(shipX+25, canvas.height-120);
-  ctx.lineTo(shipX, canvas.height-70);
-  ctx.lineTo(shipX+50, canvas.height-70);
+  ctx.moveTo(shipX+25, canvas.height-120); // Punta
+  ctx.lineTo(shipX, canvas.height-70);    // Base izquierda
+  ctx.lineTo(shipX+50, canvas.height-70); // Base derecha
+  ctx.closePath();
   ctx.fill();
 
-  // spawn meteors
-  if(frames % Math.max(20,40 - Math.floor(score/5)) === 0){
-    meteors.push({x: Math.random()*(canvas.width-60), y:-60, v: 4 + Math.min(8, score/12)});
+  // spawn meteors (Ligeramente ajustado para la dificultad progresiva)
+  let spawnRate = Math.max(20, 40 - Math.floor(score/10));
+  if(frames % spawnRate === 0){
+    meteors.push({x: Math.random()*(canvas.width-40), y:-40, v: 4 + Math.min(6, score/15)});
   }
 
   // update meteors
@@ -320,12 +320,12 @@ function gameLoop(){
     ctx.fillStyle = '#8b5a2b';
     ctx.beginPath(); ctx.arc(m.x+20, m.y+20, 20, 0, Math.PI*2); ctx.fill();
 
-    // collision check (approx)
+    // collision check (Hitbox mejorada)
     let shipCX = shipX+25;
-    let shipCY = canvas.height-100;
+    let shipCY = canvas.height-95; // Ajustado al centro real del triángulo
     let dist = Math.hypot(shipCX - (m.x+20), shipCY - (m.y+20));
-    if(dist < 35){
-      // die
+    
+    if(dist < 30){ // Radio de colisión más justo
       isDead = true;
       gameMusic.pause();
       document.getElementById('overlay-title').innerText = 'MORISTE BOT';
@@ -342,7 +342,7 @@ function gameLoop(){
   }
 
   frames++;
-  requestAnimationFrame(gameLoop);
+  animationId = requestAnimationFrame(gameLoop);
 }
 
 /* start transition: menu -> juego */
@@ -356,9 +356,10 @@ function startToGame(){
     resetGame();
     trans.style.opacity = '0';
     // kickoff loop
+    cancelAnimationFrame(animationId);
     isPaused = false;
     isDead = false;
-    requestAnimationFrame(gameLoop);
+    gameLoop();
   },700);
 }
 
@@ -373,6 +374,7 @@ function gameToMenu(){
     fadeAudio(gameMusic, menuMusic);
     isPaused = false;
     isDead = false;
+    cancelAnimationFrame(animationId);
     trans.style.opacity = '0';
   },700);
 }
@@ -384,7 +386,13 @@ function togglePause(){
   document.getElementById('overlay-title').innerText = 'PAUSA';
   document.getElementById('overlay-title').style.color = '#00ffcc';
   document.getElementById('btn-resume').style.display = 'block';
-  if(isPaused) gameMusic.pause(); else { gameMusic.play().catch(()=>{}); requestAnimationFrame(gameLoop); }
+  if(isPaused) {
+    gameMusic.pause(); 
+    cancelAnimationFrame(animationId);
+  } else { 
+    gameMusic.play().catch(()=>{}); 
+    gameLoop(); 
+  }
 }
 
 function restartGame(){
@@ -392,14 +400,15 @@ function restartGame(){
   isDead = false;
   isPaused = false;
   document.getElementById('overlay-menu').style.display = 'none';
+  gameMusic.currentTime = 0;
   gameMusic.play().catch(()=>{});
-  requestAnimationFrame(gameLoop);
+  cancelAnimationFrame(animationId);
+  gameLoop();
 }
 
 /* resize handling */
 window.addEventListener('resize', ()=>{
   resizeCanvas(); resizeMenuStars();
-  // adjust ship bounds
   shipX = Math.min(shipX, canvas.width-60);
 });
 
@@ -421,6 +430,8 @@ document.getElementById('game-screen').style.display = 'none';
 
 /* attempt to play menu music on interaction if autoplay blocked */
 document.addEventListener('click', ()=>{ menuMusic.play().catch(()=>{}); }, {once:true});
+document.addEventListener('touchstart', ()=>{ menuMusic.play().catch(()=>{}); }, {once:true});
 </script>
 </body>
-</html>
+      </html>
+  
