@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ESTELAR - PattitexTEC</title>
 <style>
-/* fuente opcional */
 @font-face{font-family:MiFuenteCustom;src:url('./asset/fuente.ttf') format('truetype');}
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
 body{
   background:#000;color:#fff;font-family:MiFuenteCustom,Arial,Helvetica,sans-serif;
-  -webkit-tap-highlight-color:transparent;user-select:none;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none; overflow:hidden;
 }
 #transition-layer{position:fixed;inset:0;background:#000;z-index:1200;pointer-events:none;opacity:0;transition:opacity .7s ease;}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center}
@@ -55,8 +55,13 @@ h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18p
 <div id="menu-screen" class="screen" aria-label="menu principal">
   <canvas id="menu-stars"></canvas>
   <h1>ESTELAR</h1>
+
   <button class="btn-main" onclick="startToGame()">JUGAR</button>
-  <button class="btn-main" style="margin-top:16px;font-size:1rem;padding:12px 40px" onclick="showGeneral()">GENERAL</button>
+
+  <button class="btn-main" style="margin-top:16px;font-size:1rem;padding:12px 40px" onclick="showGeneral()">
+    GENERAL
+  </button>
+
   <div style="position:absolute;bottom:18px;font-size:.82rem;color:#9fded0;opacity:.9">v0.1 α — PattitexTEC</div>
 </div>
 
@@ -130,16 +135,13 @@ h1{font-size:3.4rem;color:#00ffcc;text-shadow:0 0 18px #00ffcc;margin-bottom:18p
 
 <script>
 /* ---------------------------
-   Audio (opcional: si no tienes archivos, no falla)
+   Audio
    --------------------------- */
 const menuMusic = new Audio('asset/music/menu.mp3');
 const gameMusic = new Audio('asset/music/game.mp3');
 menuMusic.loop = true; gameMusic.loop = true;
-
-/* autoplay attempt (silenced if bloqueado) */
 window.addEventListener('load', ()=>{ menuMusic.play().catch(()=>{}); });
 
-/* simple fade */
 function fadeAudio(outAudio, inAudio){
   try{
     let ov = outAudio.volume ?? 1;
@@ -160,7 +162,7 @@ function fadeAudio(outAudio, inAudio){
 }
 
 /* ---------------------------
-   Menu stars (simple)
+   Menu stars
    --------------------------- */
 const ms = document.getElementById('menu-stars');
 const mctx = ms.getContext('2d');
@@ -199,8 +201,6 @@ let isPaused = false;
 let isDead = false;
 let moveL = false, moveR = false;
 let animationId;
-
-/* Ship collision size (approx) */
 const shipRadius = 30;
 
 function resetGame(){
@@ -217,7 +217,7 @@ function resetGame(){
   document.getElementById('overlay-menu').style.display = 'none';
 }
 
-/* Controls (touch + mouse) */
+/* Controls */
 function setupCtrl(id, side){
   const el = document.getElementById(id);
   el.addEventListener('touchstart', e=>{ e.preventDefault(); if(side==='L') moveL=true; else moveR=true; }, {passive: false});
@@ -238,37 +238,22 @@ window.addEventListener('keyup', (e)=>{
   if(e.key === 'ArrowRight') moveR = false;
 });
 
-/* Spawn meteor with random size and internal circles */
+/* Spawn meteor: only random sizes, NO wobble, NO inner circles */
 function spawnMeteor(){
   const r = Math.floor(Math.random() * 36) + 12; // radius 12 - 47
   const x = Math.random() * (canvas.width - r*2);
-  // speed slightly depending on size (smaller = faster generally)
-  const speedBase = 3 + Math.random()*2;
-  const v = speedBase + (30 / (r+10)) + Math.min(4, score/60);
-  // create 1-4 internal circles (craters / texture) with random position inside meteor
-  const innerCount = Math.floor(Math.random()*4) + 1;
-  const inner = [];
-  for(let i=0;i<innerCount;i++){
-    const rr = Math.max(2, Math.floor(r * (Math.random()*0.45 + 0.12))); // 12% - 57% of meteor radius but >=2
-    // place inside meteor circle using polar coords
-    const angle = Math.random()*Math.PI*2;
-    const dist = Math.random()*(r - rr) * 0.7; // keep inside comfortably
-    const dx = Math.cos(angle)*dist;
-    const dy = Math.sin(angle)*dist;
-    inner.push({dx, dy, rr});
-  }
-  meteors.push({x: x, y: -r*2, v: v, r: r, inner: inner, wobble: Math.random()*200});
+  // speed: smaller meteors are generally faster
+  const v = 3 + (40 / (r + 8)) + Math.min(4, score/60);
+  meteors.push({x: x, y: -r*2, v: v, r: r});
 }
 
-/* game loop draw meteor with internal circles and gradient */
+/* Draw simple meteor (gradient) */
 function drawMeteor(m){
-  // meteor center
   const cx = m.x + m.r;
   const cy = m.y + m.r;
-  // body gradient (radial)
   const grad = ctx.createRadialGradient(cx - m.r*0.2, cy - m.r*0.2, m.r*0.1, cx, cy, m.r);
   grad.addColorStop(0, '#d69b5d');
-  grad.addColorStop(0.5, '#9a5e2e');
+  grad.addColorStop(0.6, '#9a5e2e');
   grad.addColorStop(1, '#60381d');
 
   ctx.fillStyle = grad;
@@ -276,48 +261,28 @@ function drawMeteor(m){
   ctx.arc(cx, cy, m.r, 0, Math.PI*2);
   ctx.fill();
 
-  // subtle dark outline
   ctx.lineWidth = Math.max(1, Math.round(m.r*0.06));
   ctx.strokeStyle = 'rgba(0,0,0,0.45)';
   ctx.stroke();
-
-  // draw inner circles (craters / texture) with lighter/similar colors
-  m.inner.forEach(ic=>{
-    const icx = cx + ic.dx;
-    const icy = cy + ic.dy;
-    const igrad = ctx.createRadialGradient(icx - ic.rr*0.2, icy - ic.rr*0.2, ic.rr*0.1, icx, icy, ic.rr);
-    igrad.addColorStop(0, 'rgba(255,210,160,0.95)');
-    igrad.addColorStop(0.5, 'rgba(170,110,70,0.9)');
-    igrad.addColorStop(1, 'rgba(120,70,40,0.65)');
-    ctx.beginPath();
-    ctx.arc(icx, icy, ic.rr, 0, Math.PI*2);
-    ctx.fillStyle = igrad;
-    ctx.fill();
-    // small inner highlight
-    ctx.beginPath();
-    ctx.arc(icx - ic.rr*0.25, icy - ic.rr*0.25, Math.max(1, Math.round(ic.rr*0.25)), 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(255,230,200,0.6)';
-    ctx.fill();
-  });
 }
 
-/* Improved collision: meteor radius vs ship approx center */
+/* collision: simple circle vs ship */
 function checkCollision(m){
   const shipCX = shipX + 25;
   const shipCY = canvas.height - 95;
   const meteorCX = m.x + m.r;
   const meteorCY = m.y + m.r;
   const dist = Math.hypot(shipCX - meteorCX, shipCY - meteorCY);
-  return dist < (shipRadius + m.r * 0.85); // allow a little margin
+  return dist < (shipRadius + m.r * 0.85);
 }
 
-/* main loop */
+/* Main loop (no horizontal wobble) */
 function gameLoop(){
   if(isPaused || isDead || document.getElementById('game-screen').style.display === 'none') return;
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // background stars (simple parallax feel)
+  // small background star noise
   ctx.fillStyle = 'rgba(255,255,255,0.02)';
   for(let s=0;s<2;s++){
     ctx.fillRect((frames*0.2 + s*200) % canvas.width, (s*120) % canvas.height, 1, 1);
@@ -327,7 +292,7 @@ function gameLoop(){
   if(moveL && shipX > 0) shipX -= shipSpeed;
   if(moveR && shipX < canvas.width - 50) shipX += shipSpeed;
 
-  // draw ship (triangle)
+  // draw ship
   ctx.fillStyle = '#00ffcc';
   ctx.beginPath();
   ctx.moveTo(shipX+25, canvas.height-120);
@@ -336,18 +301,13 @@ function gameLoop(){
   ctx.closePath();
   ctx.fill();
 
-  // spawn meteors: spawnRate decreases as score increases
+  // spawn meteors
   const spawnRate = Math.max(8, 40 - Math.floor(score/6));
-  if(frames % spawnRate === 0){
-    spawnMeteor();
-  }
+  if(frames % spawnRate === 0) spawnMeteor();
 
   // update meteors
   for(let i = meteors.length - 1; i >= 0; i--){
     const m = meteors[i];
-    // tiny horizontal wobble for more life
-    m.wobble += 0.02 + Math.random()*0.01;
-    m.x += Math.sin(m.wobble)*0.4;
     m.y += m.v;
 
     drawMeteor(m);
@@ -361,7 +321,6 @@ function gameLoop(){
       document.getElementById('overlay-menu').style.display = 'flex';
     }
 
-    // off screen -> remove + increment score
     if(m.y - m.r > canvas.height + 60){
       meteors.splice(i,1);
       score++;
@@ -373,7 +332,7 @@ function gameLoop(){
   animationId = requestAnimationFrame(gameLoop);
 }
 
-/* start transition: menu -> juego */
+/* Transitions and controls (igual que antes) */
 function startToGame(){
   const trans = document.getElementById('transition-layer');
   trans.style.opacity = '1';
@@ -390,7 +349,6 @@ function startToGame(){
   },700);
 }
 
-/* back to menu */
 function gameToMenu(){
   const trans = document.getElementById('transition-layer');
   trans.style.opacity = '1';
@@ -433,13 +391,12 @@ function restartGame(){
   gameLoop();
 }
 
-/* resize handling */
 window.addEventListener('resize', ()=>{
   resizeCanvas(); resizeMenuStars();
   shipX = Math.min(shipX, canvas.width-60);
 });
 
-/* modal general */
+/* General modal */
 function showGeneral(){ document.getElementById('general-modal').style.display = 'flex'; menuMusic.pause(); }
 function hideGeneral(){ document.getElementById('general-modal').style.display = 'none'; try{ menuMusic.play(); }catch(e){} }
 function copyCreator(){
